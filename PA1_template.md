@@ -9,7 +9,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 First, we'll read in the data using read.csv.
 
-```{r Code for reading in data, cache=TRUE}
+
+```r
 data <- read.csv("activity.csv")
 ```
 
@@ -17,47 +18,58 @@ data <- read.csv("activity.csv")
 
 We'll use the aggregate function to sum the totals for each day, and rename the columns.
 
-```{r Code for totals and histogram}
+
+```r
 total <- aggregate(data$steps, list(data$date), sum)
 names(total) <- c("Date", "TotalSteps")
 hist(total$TotalSteps, main = "Histogram of total steps", xlab="Number of steps")
 ```
 
+![plot of chunk Code for totals and histogram](figure/Code for totals and histogram-1.png)
+
 We can also calculate the mean and median of the number of steps each day.
 
-```{r Code for mean and median}
+
+```r
 datamean <- mean(total$TotalSteps, na.rm = TRUE)
 datamedian <- median(total$TotalSteps, na.rm = TRUE)
 ```
 
-Using this, we calculate that the mean daily number of steps is `r datamean` and the median is `r datamedian`.
+Using this, we calculate that the mean daily number of steps is 1.0766189 &times; 10<sup>4</sup> and the median is 10765.
 
 ## What is the average daily activity pattern?
 
 We can work out the average number of steps for each five-minute interval, and plot that as a time series.
 
-```{r Code for average steps in interval, and time series plot}
+
+```r
 intavg <- aggregate(data$steps, list(data$interval), mean, na.rm = TRUE)
 names(intavg) <- c("interval", "averageSteps")
 
 plot(x=intavg$interval, y=intavg$averageSteps, type = "l", xlab = "time intervals", ylab = "average number of steps", main = "Time series of average steps in each interval")
+```
 
+![plot of chunk Code for average steps in interval, and time series plot](figure/Code for average steps in interval, and time series plot-1.png)
+
+```r
 max <- intavg$interval[which.max(intavg$averageSteps)]
 ```
 
-The interval in which the average number of steps was highest is `r max`.
+The interval in which the average number of steps was highest is 835.
 
 ## Imputing missing values
 
-```{r Code for counting missing values}
+
+```r
 naTot <- sum(is.na(data$steps))
 ```
 
-There are `r naTot` missing values for the number of steps in the data.
+There are 2304 missing values for the number of steps in the data.
 
 For this analysis, we will replace NAs with the corresponding average for that 5-minute interval.
 
-```{r Code for replacing NAs}
+
+```r
 avgs <- rep(intavg$averageSteps, times= 61)
 newdata <- data
 for (i in 1:17568) {
@@ -69,25 +81,31 @@ for (i in 1:17568) {
 
 We can use the new dataset, with NA values replaced by imputed data, to plot a histogram.
 
-```{r Code for new totals and histogram plus means and median}
+
+```r
 newtotal <- aggregate(newdata$steps, list(newdata$date), sum)
 names(newtotal) <- c("Date", "TotalSteps")
 
 hist(newtotal$TotalSteps, main = "Histogram of total steps, with imputed data", xlab="Number of steps")
+```
 
+![plot of chunk Code for new totals and histogram plus means and median](figure/Code for new totals and histogram plus means and median-1.png)
+
+```r
 newmean <- mean(newtotal$TotalSteps, na.rm = TRUE)
 newmedian <- median(newtotal$TotalSteps, na.rm = TRUE)
 ```
 
-With the imputed data, we calculate that the mean daily number of steps is `r newmean` and the median is `r newmedian`.
+With the imputed data, we calculate that the mean daily number of steps is 1.0766189 &times; 10<sup>4</sup> and the median is 1.0766189 &times; 10<sup>4</sup>.
 
-With rounding errors, the mean and median without the imputed data (which were `r datamean` and `r datamedian` respectively) are very close to the imputed data. Imputing data has not changed the mean and median values substantially.
+With rounding errors, the mean and median without the imputed data (which were 1.0766189 &times; 10<sup>4</sup> and 10765 respectively) are very close to the imputed data. Imputing data has not changed the mean and median values substantially.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 We can analyse the differences between activity during the week and at weekends.
 
-```{r Converting the date and adding a factor column for weekends and weekdays}
+
+```r
 require(lubridate)
 newdata$chardate <- sapply(newdata$date, as.character)
 ## add a column for day of the week
@@ -99,7 +117,8 @@ newdata <- mutate(newdata, daytype = factor(1 * days %in% c("Sun", "Sat"), label
 
 We can use this data to average the number of steps for weekday and weekend activity separately.
 
-```{r Code to average intervals for both weekday and weekend data}
+
+```r
 weekdaydata <- filter(newdata, daytype == "weekday")
 weekenddata <- filter(newdata, daytype == "weekend")
 
@@ -118,8 +137,11 @@ names(splitdata) <- c("interval", "weekdaySteps", "weekendSteps")
 
 Now we've averaged the data for weekdays and weekends separately, we can plot time series for each of them.
 
-```{r Code for time series plots, fig.height=10}
+
+```r
 par(mfrow = c(2,1))
 plot(x=splitdata$interval, y=splitdata$weekdaySteps, type = "l", xlab = "time intervals", ylab = "average number of steps", main = "Weekdays")
 plot(x=splitdata$interval, y=splitdata$weekendSteps, type = "l", xlab = "time intervals", ylab = "average number of steps", main = "Weekends")
 ```
+
+![plot of chunk Code for time series plots](figure/Code for time series plots-1.png)
